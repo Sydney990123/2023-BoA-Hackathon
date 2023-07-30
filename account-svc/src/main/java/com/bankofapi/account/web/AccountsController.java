@@ -1,5 +1,6 @@
 package com.bankofapi.account.web;
 
+import com.bankofapi.account.model.GetAccountBalancesDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.bankofapi.account.model.GetAccountsDTO;
 import org.apache.http.HttpHost;
@@ -18,6 +19,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
@@ -37,10 +40,13 @@ public class AccountsController {
 
     RestTemplate restTemplate = new RestTemplate();
 
+    ObjectMapper mapper = new ObjectMapper();
+
     @Autowired
     Environment env;
 
     String ACCOUNT_URL = "https://ob.sandbox.natwest.com/open-banking/v3.1/aisp/accounts";
+
     String ACCESS_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHAiOiJCb0FUZXN0QXBwIiwib3JnIjoiYm9hdGVzdHRlYW0uY28udWsiLCJpc3MiOiJodHRwczovL2FwaS5zYW5kYm94Lm5hdHdlc3QuY29tIiwidG9rZW5fdHlwZSI6IkFDQ0VTU19UT0tFTiIsImV4dGVybmFsX2NsaWVudF9pZCI6IkJEd2V1TXhPZnFYY2FIbk9TWXoyZGRBX1pjeEpXU21OUExTUHJ3cHpPMjA9IiwiY2xpZW50X2lkIjoiNWNlNTFjMTMtYWZiMy00MjBkLTk0MTAtYTYzNjQzN2RiNGQ5IiwibWF4X2FnZSI6ODY0MDAsImF1ZCI6IjVjZTUxYzEzLWFmYjMtNDIwZC05NDEwLWE2MzY0MzdkYjRkOSIsInVzZXJfaWQiOiIxMjM0NTY3ODkwMTJAYm9hdGVzdHRlYW0uY28udWsiLCJncmFudF9pZCI6ImIyYzRhOTgxLTBmZDAtNGEwZi1hZDczLTExOGU1NDBkNGI2YSIsInNjb3BlIjoiYWNjb3VudHMgb3BlbmlkIiwiY29uc2VudF9yZWZlcmVuY2UiOiI4YTU2NDNmMC1lZTQwLTRlYjItYWJkZS04NWRjYjJjMzQxMDIiLCJleHAiOjE2OTA1NDQxMjgsImlhdCI6MTY5MDU0MzUyOCwianRpIjoiNjE5YjU0N2QtOTcwMy00MzEzLTkyNDktYzhkYWM2N2NmNzAyIiwidGVuYW50IjoiTmF0V2VzdCJ9.fo1n9lXavszZoYnKi4sdBOnczea_4ZqDgdDbVjsSQXIvTBUU4VYUbjdL5-784EheXinJxnBXfqjmgIStw8cE5lYdlq1Jsss8-kTZw-pGMl_hoiNJRLWez47Ek1otrx7rh3E4nfx8BiesuCyvQKRtJMfFPEA3GJrl4_pclnA2Ya7FxUqdXrXFJDUoUMsPk7YzV4tAC4ULUvWb37alWzUtxUiVDSXAPI1a05r7IHNqa-7HQtL9rsPwR1JSgXdFfVNqyzDf_pATEOoTWVtCbKVu-7lJo39YB5iFNZMtm1H2cHiO7WTZKUStvXWTf40uvlF6IT3tYQSC6qdFrngJXdxKnQ";
 
     private static final TrustManager MOCK_TRUST_MANAGER = new X509ExtendedTrustManager() {
@@ -115,12 +121,23 @@ public class AccountsController {
                 }).getBody();
 
         System.out.println("Actual Response : " + response);
-        return createResponseDTO(response);
+        return mapper.readValue(response, GetAccountsDTO.class);
     }
 
-    public static GetAccountsDTO createResponseDTO(String responseString) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(responseString, GetAccountsDTO.class);
+    @GetMapping("/{accountId}/balances")
+    public GetAccountBalancesDTO getBalances(@PathVariable String accountId) throws Exception {
+        restTemplate = createRestTemplate();
+        System.out.println("Inside TestController::invoke()-->"+ Arrays.toString(env.getActiveProfiles()));
+        String url = ACCOUNT_URL + "/" + accountId + "/balances";
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + ACCESS_TOKEN);
+        HttpEntity<Void> httpEntity = new HttpEntity<>(headers);
+        String response = restTemplate.exchange(url, HttpMethod.GET, httpEntity,
+                new ParameterizedTypeReference<String>() {
+                }).getBody();
+
+        System.out.println("Actual Response : " + response);
+        return mapper.readValue(response, GetAccountBalancesDTO.class);
     }
 
 }
