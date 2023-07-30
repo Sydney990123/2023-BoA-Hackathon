@@ -1,11 +1,15 @@
 package com.bankofapi.hoverflyclient.web;
 
+import com.bankofapi.hoverflyclient.model.GetAccountBalances;
 import com.bankofapi.hoverflyclient.model.GetAccounts;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
@@ -31,6 +35,18 @@ public class AccountsClientController {
         String url = accountServiceUrl + "/accounts";
         GetAccounts response = restTemplate.exchange(url, HttpMethod.GET, null,
                 GetAccounts.class).getBody();
+
+        System.out.println("Actual Response : " + response);
+        return response;
+    }
+
+    @GetMapping("/accounts-client/{accountId}/balances")
+    public GetAccountBalances getBalances(@PathVariable String accountId) {
+
+        System.out.println("Inside TestController::invoke()-->"+ Arrays.toString(env.getActiveProfiles()));
+        String url = accountServiceUrl + "/" + accountId + "/balances";
+        GetAccountBalances response = restTemplate.exchange(url, HttpMethod.GET, null,
+                GetAccountBalances.class).getBody();
 
         System.out.println("Actual Response : " + response);
         return response;
